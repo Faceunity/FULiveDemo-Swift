@@ -1,0 +1,4 @@
+${PODS_ROOT}/Target Support Files/Pods-FULiveDemo-Swift/Pods-FULiveDemo-Swift-frameworks.sh
+${BUILT_PRODUCTS_DIR}/HandyJSON/HandyJSON.framework
+${BUILT_PRODUCTS_DIR}/SVProgressHUD/SVProgressHUD.framework
+${BUILT_PRODUCTS_DIR}/SnapKit/SnapKit.framework

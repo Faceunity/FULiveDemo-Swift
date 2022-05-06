@@ -1,0 +1,24 @@
+PODS:
+  - HandyJSON (5.0.2)
+  - SnapKit (4.2.0)
+  - SVProgressHUD (2.2.5)
+
+DEPENDENCIES:
+  - HandyJSON
+  - SnapKit
+  - SVProgressHUD
+
+SPEC REPOS:
+  trunk:
+    - HandyJSON
+    - SnapKit
+    - SVProgressHUD
+
+SPEC CHECKSUMS:
+  HandyJSON: 9e4e236f5d2dbefad5155a77417bbea438201c03
+  SnapKit: fe8a619752f3f27075cc9a90244d75c6c3f27e2a
+  SVProgressHUD: 1428aafac632c1f86f62aa4243ec12008d7a51d6
+
+PODFILE CHECKSUM: c1edac4190b6f72a5603195d210982f90fd30404
+
+COCOAPODS: 1.11.3
