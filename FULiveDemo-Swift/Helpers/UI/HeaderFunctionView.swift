@@ -16,7 +16,7 @@ import UIKit
 }
 
 class HeaderFunctionView: UIView {
-    
+    private var functionTypes: [HeaderFunctionType] = []
     weak var delegate: HeaderFunctionViewDelegate?
     
     lazy var backButton: UIButton = {
@@ -30,7 +30,12 @@ class HeaderFunctionView: UIView {
         let switchFormatSegment = UISegmentedControl(items: ["BGRA", "YUV"])
         switchFormatSegment.tintColor = UIColor.white
         switchFormatSegment.selectedSegmentIndex = 0
+        switchFormatSegment.setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal) // 未选中状态颜色
+        switchFormatSegment.setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
         switchFormatSegment.addTarget(self, action: #selector(switchFormatAction), for: .valueChanged)
+        switchFormatSegment.layer.cornerRadius = 4
+        switchFormatSegment.layer.borderWidth = 1
+        switchFormatSegment.layer.borderColor = UIColor.white.cgColor
         return switchFormatSegment
     }()
     
@@ -54,53 +59,72 @@ class HeaderFunctionView: UIView {
         switchCameraButton.addTarget(self, action: #selector(switchCameraAction), for: .touchUpInside)
         return switchCameraButton
     }()
-
-    override init(frame: CGRect) {
+    
+    init(frame: CGRect, functionTypes: [HeaderFunctionType]) {
+        self.functionTypes = functionTypes
         super.init(frame: frame)
-
+        
         addSubview(backButton)
         backButton.snp_makeConstraints { make in
-            make.centerY.equalToSuperview();
-            make.left.equalTo(self).offset(10);
-            make.height.width.equalTo(44);
-        }
-
-        addSubview(switchFormatSegment)
-        switchFormatSegment.snp.makeConstraints { make in
             make.centerY.equalToSuperview()
-            make.leading.equalTo(backButton.snp_trailing).offset(12)
-            make.size.equalTo(CGSize(width: 96, height: 27))
+            make.left.equalTo(self).offset(10)
+            make.height.width.equalTo(44)
         }
         
-        addSubview(switchCameraButton)
-        switchCameraButton.snp.makeConstraints { make in
-            make.centerY.equalToSuperview()
-            make.trailing.equalToSuperview().offset(-10)
-            make.height.width.equalTo(44);
+        if functionTypes.contains(.switchFormat) {
+            addSubview(switchFormatSegment)
+            switchFormatSegment.snp.makeConstraints { make in
+                make.centerY.equalToSuperview()
+                make.leading.equalTo(backButton.snp_trailing).offset(11)
+                make.size.equalTo(CGSize(width: 90, height: 24))
+            }
         }
         
-        addSubview(buglyButton)
-        buglyButton.snp.makeConstraints { make in
-            make.centerY.equalToSuperview()
-            make.trailing.equalTo(switchCameraButton.snp_leading).offset(-10)
-            make.height.width.equalTo(44);
+        // 从右向左依次添加按钮
+        var lastView: UIView = self
+        var lastOffset: CGFloat = -10
+        
+        if functionTypes.contains(.switchCamera) {
+            addSubview(switchCameraButton)
+            switchCameraButton.snp.makeConstraints { make in
+                make.centerY.equalToSuperview()
+                make.trailing.equalToSuperview().offset(lastOffset)
+                make.height.width.equalTo(44)
+            }
+            lastView = switchCameraButton
+            lastOffset = -10
         }
         
-        
-        addSubview(selectMediaButton)
-        selectMediaButton.snp.makeConstraints { make in
-            make.centerY.equalToSuperview()
-            make.trailing.equalTo(buglyButton.snp_leading).offset(-10)
-            make.height.width.equalTo(44);
+        if functionTypes.contains(.bugly) {
+            addSubview(buglyButton)
+            buglyButton.snp.makeConstraints { make in
+                make.centerY.equalToSuperview()
+                make.trailing.equalTo(lastView === self ? lastView : lastView.snp_leading).offset(lastOffset)
+                make.height.width.equalTo(44)
+            }
+            lastView = buglyButton
         }
         
+        if functionTypes.contains(.selectMedia) {
+            addSubview(selectMediaButton)
+            selectMediaButton.snp.makeConstraints { make in
+                make.centerY.equalToSuperview()
+                make.trailing.equalTo(lastView === self ? lastView : lastView.snp_leading).offset(lastOffset)
+                make.height.width.equalTo(44)
+            }
+        }
     }
     
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    //MARK: Event response
+    override private init(frame: CGRect) {
+        super.init(frame: frame)
+    }
+    
+    // MARK: Event response
     
     @objc private func backAction() {
         if let delegate = delegate {
@@ -136,5 +160,4 @@ class HeaderFunctionView: UIView {
             delegate.headerFunctionView(view: self, didSelectFunction: .switchCamera)
         }
     }
-    
 }

@@ -9,9 +9,11 @@
 
 /// 设备性能等级
 typedef NS_ENUM(NSInteger, FUDevicePerformanceLevel) {
-    FUDevicePerformanceLevelLow = 0,
-    FUDevicePerformanceLevelMedium,
-    FUDevicePerformanceLevelHigh
+    FUDevicePerformanceLevelLow_1 = -1,     // iPhone6、iPhone6Plus及以下机型
+    FUDevicePerformanceLevelLow = 1,        // iPhone6Plus以上和iPhone8以下机型
+    FUDevicePerformanceLevelHigh = 2,       // iPhone8及以上和iPhoneXR以下机型
+    FUDevicePerformanceLevelVeryHigh = 3,   // iPhoneXR
+    FUDevicePerformanceLevelExcellent = 4   // iPhoneXR以上机型
 };
 
 /// 设备具体机型
@@ -49,6 +51,15 @@ typedef NS_ENUM(NSInteger, FUDeviceModelType) {
     FUDeviceModelTypeiPhone13,
     FUDeviceModelTypeiPhone13Pro,
     FUDeviceModelTypeiPhone13ProMax,
+    FUDeviceModelTypeiPhoneSENew,
+    FUDeviceModelTypeiPhone14,
+    FUDeviceModelTypeiPhone14Plus,
+    FUDeviceModelTypeiPhone14Pro,
+    FUDeviceModelTypeiPhone14ProMax,
+    FUDeviceModelTypeiPhone15,
+    FUDeviceModelTypeiPhone15Plus,
+    FUDeviceModelTypeiPhone15Pro,
+    FUDeviceModelTypeiPhone15ProMax,
     FUDeviceModelTypeOthers
 };
 
@@ -57,6 +68,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface UIDevice (FURenderKit)
 
 - (FUDeviceModelType)fu_deviceModelType;
+
+- (NSString *)fu_deviceModelString;
 
 - (FUDevicePerformanceLevel)fu_devicePerformanceLevel;
 

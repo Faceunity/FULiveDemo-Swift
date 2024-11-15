@@ -20,7 +20,7 @@ class BeautyCategoriesView: UIView {
     lazy var categoriesCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: UIScreen.main.bounds.width / 4.0, height: 49)
+        layout.itemSize = CGSize(width: UIScreen.main.bounds.width / 3.0, height: 49)
         layout.sectionInset = .zero
         layout.minimumLineSpacing = 0;
         layout.minimumInteritemSpacing = 0
@@ -34,9 +34,6 @@ class BeautyCategoriesView: UIView {
     }()
     
     var categoriesViewModel: BeautyCategoriesViewModel!
-    
-    /// 是否选中了风格推荐
-    var styleSelected: Bool = false
     
     init(frame: CGRect, viewModel: BeautyCategoriesViewModel) {
         super.init(frame: frame)
@@ -83,7 +80,8 @@ extension BeautyCategoriesView: UICollectionViewDataSource, UICollectionViewDele
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: categoryCellIdentifer, for: indexPath) as! BeautyCategoryCell
-        cell.categoryLabel.text = NSLocalizedString(BeautyCategory(rawValue: indexPath.item)!.name, comment: "")
+        let title = NSLocalizedString(BeautyCategory(rawValue: indexPath.item)!.name, tableName: "Beauty", bundle: .main, value: "", comment: "")
+        cell.categoryLabel.text = title
         // cell.categoryLabel
         return cell
     }
@@ -91,23 +89,6 @@ extension BeautyCategoriesView: UICollectionViewDataSource, UICollectionViewDele
     //MARK: UICollectionViewDelegate
     
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
-        if styleSelected && indexPath.item < BeautyCategory.preset.rawValue {
-            // 风格推荐选中时不允许选择美肤、美型、滤镜
-            var tipMessage: String?
-            switch BeautyCategory(rawValue: indexPath.item) {
-            case .skin:
-                tipMessage = String(format: NSLocalizedString("风格推荐警告", comment: ""), NSLocalizedString("美肤", comment: ""))
-            case .shape:
-                tipMessage = String(format: NSLocalizedString("风格推荐警告", comment: ""), NSLocalizedString("美型", comment: ""))
-            case .filter:
-                tipMessage = String(format: NSLocalizedString("风格推荐警告", comment: ""), NSLocalizedString("滤镜", comment: ""))
-            default:break
-            }
-            if let message = tipMessage {
-                ProgressHUD.showError(message: message)
-            }
-            return false
-        }
         return true
     }
     

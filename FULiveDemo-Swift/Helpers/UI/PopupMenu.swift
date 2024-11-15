@@ -25,7 +25,6 @@ class PopupMenu: UIView {
     
     private lazy var backgroundView: UIView = {
         let view = UIView(frame: keyWindow!.bounds)
-        view.backgroundColor = UIColor(white: 0, alpha: 0.1)
         let tap = UITapGestureRecognizer(target: self, action: #selector(backgroundTap))
         view.addGestureRecognizer(tap)
         return view
@@ -64,7 +63,12 @@ class PopupMenu: UIView {
         segment.frame = CGRect(x: 25, y: 28, width: frame.size.width - 50, height: 32)
         segment.selectedSegmentIndex = selectedIndex
         segment.tintColor = .white
+        segment.setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal) // 未选中状态颜色
+        segment.setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
         segment.addTarget(self, action: #selector(segmentValueChanged(sender:)), for: .valueChanged)
+        segment.layer.cornerRadius = 4
+        segment.layer.borderWidth = 1;
+        segment.layer.borderColor = UIColor.white.cgColor
         addSubview(segment)
         
         

@@ -12,6 +12,7 @@ class HomepageCollectionViewCell: UICollectionViewCell {
     
     lazy var imageView: UIImageView = {
         let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
         return imageView
     }()
     

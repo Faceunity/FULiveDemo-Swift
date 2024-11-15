@@ -4,7 +4,6 @@
 //
 //  Created by 项林平 on 2022/2/21.
 //
-// #import <stdbool.h>
 
 #import "FURenderKit.h"
 #import "FUAIKit.h"
@@ -16,7 +15,6 @@
 #import "FUConfig.h"
 #import "FUAIConfig.h"
 #import "FUSetupConfig.h"
-#import "FUNormalConfig.h"
 #import "FUInternalCameraSetting.h"
 
 #import "FUKeysDefine.h"
@@ -71,13 +69,17 @@
 #import "FUCaptureCamera.h"
 #import "FUGLDisplayView.h"
 #import "FUGLContext.h"
+#import "FURenderQueue.h"
 
 #import "metamacros.h"
 #import "FUImageHelper.h"
-#import "FURecordEncoder.h"
 #import "FUOvonicMap.h"
 #import "FUCLIColor.h"
 #import "FUAvatarCheck.h"
+#import "FUVideoComponentDefines.h"
+#import "FUVideoReader.h"
+#import "FUVideoWriter.h"
+#import "FUVideoProcessor.h"
 
 #import "UIImage+FURenderKit.h"
 #import "FUItem+createTexture.h"

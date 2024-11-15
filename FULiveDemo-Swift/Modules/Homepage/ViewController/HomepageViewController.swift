@@ -5,11 +5,10 @@
 //  Created by 项林平 on 2022/4/6.
 //
 
-import UIKit
 import SnapKit
+import UIKit
 
 class HomepageViewController: UIViewController {
-    
     override var prefersStatusBarHidden: Bool {
         return false
     }
@@ -22,7 +21,7 @@ class HomepageViewController: UIViewController {
     private let collectionHeaderReusableViewIdentifier = "HomepageHeaderReusableView"
     
     lazy var collectionView: UICollectionView = {
-        let collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: UICollectionViewFlowLayout.init())
+        let collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: UICollectionViewFlowLayout())
         collectionView.showsVerticalScrollIndicator = false
         collectionView.backgroundColor = .clear
         collectionView.dataSource = self
@@ -34,7 +33,7 @@ class HomepageViewController: UIViewController {
     
     var viewModel: HomepageViewModel!
     
-    //MARK: Life cycle
+    // MARK: Life cycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,12 +47,12 @@ class HomepageViewController: UIViewController {
         configureUI()
     }
     
-    //MARK: UI
+    // MARK: UI
     
     func configureUI() {
         let statusHeight = UIApplication.shared.statusBarFrame.height
         let navigationView = HomepageNavigationView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 44 + statusHeight))
-        view .addSubview(navigationView)
+        view.addSubview(navigationView)
         navigationView.snp.makeConstraints { make in
             make.leading.top.trailing.equalToSuperview()
             make.height.equalTo(44 + statusHeight)
@@ -79,12 +78,10 @@ class HomepageViewController: UIViewController {
         topImageView.frame = CGRect(x: 0, y: -topImageHeight, width: topImageWidth, height: topImageHeight)
         collectionView.addSubview(topImageView)
     }
-
 }
 
 extension HomepageViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    
-    //MARK: UICollectionViewDataSource
+    // MARK: UICollectionViewDataSource
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return viewModel.homepageDataSource.count
@@ -117,24 +114,26 @@ extension HomepageViewController: UICollectionViewDelegate, UICollectionViewData
         return UICollectionReusableView()
     }
     
-    //MARK: UICollectionViewDelegate
+    // MARK: UICollectionViewDelegate
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let model = viewModel.homepageDataSource[indexPath.section][indexPath.item]
         guard model.enabled == true else {
             return
         }
-        switch ModuleType(rawValue: model.type!) {
-        case .beauty:
+        if model.name == "美颜" {
             let beautyController = BeautyViewController(viewModel: BeautyViewModel())
             navigationController?.pushViewController(beautyController, animated: true)
-        default: break
+        } else if model.name == "道具贴纸" {
+            let controller = StickerViewController(viewModel: StickerViewModel())
+            navigationController?.pushViewController(controller, animated: true)
+        } else if model.name == "手势识别" {
+            let controller = GestureRecognitionViewController(viewModel: GestureRecognitionViewModel())
+            navigationController?.pushViewController(controller, animated: true)
         }
     }
     
-    
-    
-    //MARK: UICollectionViewDelegateFlowLayout
+    // MARK: UICollectionViewDelegateFlowLayout
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let width = view.bounds.width / 3.0 - 24.0
