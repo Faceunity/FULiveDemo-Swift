@@ -19,6 +19,40 @@
 			<key>items</key>
 			<array/>
 		</dict>
+		<dict>
+			<key>itemName</key>
+			<string>道具贴纸</string>
+			<key>icon</key>
+			<string>homepage_icon_sticker</string>
+			<key>itemType</key>
+			<integer>0</integer>
+			<key>conpareCode</key>
+			<integer>0</integer>
+			<key>modules</key>
+			<array>
+				<integer>1</integer>
+			</array>
+			<key>items</key>
+			<array/>
+		</dict>
+	</array>
+	<array>
+		<dict>
+			<key>itemName</key>
+			<string>手势识别</string>
+			<key>icon</key>
+			<string>gesture_recognition</string>
+			<key>itemType</key>
+			<integer>0</integer>
+			<key>conpareCode</key>
+			<integer>0</integer>
+			<key>modules</key>
+			<array>
+				<integer>1</integer>
+			</array>
+			<key>items</key>
+			<array/>
+		</dict>
 	</array>
 </array>
 </plist>

@@ -88,7 +88,8 @@ class LiveSlider: UISlider {
         super.setValue(value, animated: animated)
         
         if defaultValueInMiddle {
-            tipLabel.text = String(format: "%.f", value * 100 - 50)
+            let displayValue = (value * 100).rounded() - 50
+            tipLabel.text = String(format: "%.f", displayValue)
             let currentValue = CGFloat(value - 0.5)
             var width = currentValue * bounds.width
             if width < 0 {

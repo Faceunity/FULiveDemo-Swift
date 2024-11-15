@@ -2,14 +2,14 @@
 
 FULiveDemo-Swift 是 iOS 平台上，集成相芯人脸跟踪及视频特效开发包（简 Nama SDK）的Swift版本的集成示例。
 
-目前集成了 Faceunity 面部跟踪、美颜功能。
+目前集成了 Faceunity 面部跟踪、美颜、贴纸、手势识别功能。
 
 ### 开发文档
 
 移动端相关文档包括:
 
-1. [FURenderKit快速集成文档.md](./移动端文档/FURenderKit快速集成文档.md)
-2. [Nama-业务模型文档说明.md](./移动端文档/Nama-业务模型文档说明.md)  
+1. [FURenderKit快速集成文档.md](./docs/移动端文档/FURenderKit快速集成文档.md)
+2. [Nama-业务模型文档说明.md](./docs/移动端文档/Nama-业务模型文档说明.md)  
 
 其他文档可以参考OC版本Demo
 

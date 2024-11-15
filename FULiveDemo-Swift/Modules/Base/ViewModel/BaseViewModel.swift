@@ -5,8 +5,18 @@
 //  Created by 项林平 on 2022/4/12.
 //
 
-import UIKit
 import FURenderKit
+import UIKit
+
+// 需要追踪的部位
+enum AITraceType: Int {
+    case Face, Hand, Body, None // 脸部、手势、人体
+}
+
+// 需要加载的 AI 模型
+enum AIModelType: Int {
+    case Face, Hand, body, None
+}
 
 enum CapturePreset: Int {
     case preset480x640 = 0, preset720x1280, preset1080x1920
@@ -26,27 +36,13 @@ typealias BuglyInformationClosure = (_ informationString: String) -> Void
 typealias FaceTraceClosure = (_ tracked: Bool) -> Void
 
 class BaseViewModel: NSObject {
-    
     var buglyInformationCallBack: BuglyInformationClosure?
     var faceTraceCallBack: FaceTraceClosure?
     
+    var aiTraceType: AITraceType = .Face
+    
     /// 是否需要渲染
     var isRendering: Bool = true
-    
-    /// 是否检测到人脸
-    var faceTrace: Bool {
-        return FUAIKit.share().trackedFacesCount > 0
-    }
-    
-    /// 是否检测到人体
-    var bodyTrace: Bool {
-        return FUAIKit.aiHumanProcessorNums() > 0
-    }
-    
-    /// 是否前置摄像头
-    var isFrontCamera: Bool {
-        return FURenderKit.share().captureCamera.isFrontCamera
-    }
     
     /// 支持的分辨率
     var supportsPresets: [CapturePreset] {
@@ -54,7 +50,7 @@ class BaseViewModel: NSObject {
     }
     
     /// 选中的分辨率
-    var selectedPreset: CapturePreset  = .preset720x1280
+    var selectedPreset: CapturePreset = .preset720x1280
     
     /// 是否支持导入图片和视频
     var isSupportMedia: Bool {
@@ -68,7 +64,7 @@ class BaseViewModel: NSObject {
     var inputBufferHeight: size_t!
     
     /// 人脸中心点
-    var faceCenter: CGPoint = CGPoint(x: 0.5, y: 0.5)
+    var faceCenter: CGPoint = .init(x: 0.5, y: 0.5)
     
     /// 计算帧率相关变量
     private var startTime: CFAbsoluteTime!, rate: Int = 0, lastCalculateTime: CFAbsoluteTime = 0, currentCalculateTime: TimeInterval = 0
@@ -78,10 +74,11 @@ class BaseViewModel: NSObject {
     func releaseItem() {}
     
     final func startCamera(view: FUGLDisplayView) {
+        FURenderKit.share().internalCameraSetting.needsAudioTrack = true
         FURenderKit.share().startInternalCamera()
         FURenderKit.share().glDisplayView = view
         FURenderKit.share().delegate = self
-        FURenderKit.share().captureCamera.dataSource = self
+        FURenderKit.share().captureCamera!.dataSource = self
     }
     
     final func stopCamera() {
@@ -101,20 +98,26 @@ class BaseViewModel: NSObject {
     }
     
     /// 添加麦克风输入（FURenderKit内部默认不开启麦克风输入）
-    final func addMicrophoneInput() {
-        FURenderKit.share().captureCamera.addAudio()
-    }
+//    final func addMicrophoneInput() {
+//        FURenderKit.share().captureCamera!.addAudio()
+//    }
 
     /// 切换摄像头
     final func switchCamera() {
+        let postion = FURenderKit.share().internalCameraSetting.position
+        let toFront = postion == .front ? false : true
         if let camera = FURenderKit.share().captureCamera {
-            camera.changeInputDeviceisFront(!camera.isFrontCamera)
-            if camera.isFrontCamera {
-                FURenderKit.share().internalCameraSetting.position = .front
+            if camera.supportsAVCaptureSessionPreset(toFront) == false {
+                AutoDismissToast.show(NSLocalizedString("设备不支持该分辨率", comment: ""))
             } else {
-                FURenderKit.share().internalCameraSetting.position = .back
+                camera.changeInputDeviceisFront(!camera.isFrontCamera)
+                if camera.isFrontCamera {
+                    FURenderKit.share().internalCameraSetting.position = .front
+                } else {
+                    FURenderKit.share().internalCameraSetting.position = .back
+                }
+                resetTrackedResult()
             }
-            resetTrackedResult()
         }
     }
     
@@ -144,9 +147,9 @@ class BaseViewModel: NSObject {
         FUAIKit.share().maxTrackBodies = Int32(bodyNumber)
     }
     
-    final func setFocusMode(mode: FUCaptureCameraFocusModel) {
+    final func setFocusMode(mode: FUCaptureCameraFocusMode) {
         if let camera = FURenderKit.share().captureCamera {
-            camera.cameraChangeModle(mode)
+            camera.cameraChange(mode)
         }
     }
     
@@ -156,6 +159,7 @@ class BaseViewModel: NSObject {
         }
     }
     
+    // 修改曝光度
     final func setExposureValue(value: Float) {
         if let camera = FURenderKit.share().captureCamera {
             camera.setExposureValue(value)
@@ -188,10 +192,12 @@ class BaseViewModel: NSObject {
         }
         return result
     }
+
     /// 拍照
     final func capturePhoto() {
-        if let image = FURenderKit.captureImage() {
-            UIImageWriteToSavedPhotosAlbum(image, self, #selector(savedPhotosAlbum(image:didFinishSavingWithError:contextInfo:)), nil)
+        DispatchQueue.global(qos: .utility).async {
+            let image = FURenderKit.captureImage()
+            UIImageWriteToSavedPhotosAlbum(image, self, #selector(self.savedPhotosAlbum(image:didFinishSavingWithError:contextInfo:)), nil)
         }
     }
     
@@ -199,14 +205,14 @@ class BaseViewModel: NSObject {
     final func startRecordingVideo() {
         let videoName = String(format: "%@.mp4", CurrentDateString())
         let videoPathURL = URL(string: NSTemporaryDirectory())?.appendingPathComponent(videoName)
-        FURenderKit.startRecordVideo(withFilePath: videoPathURL?.absoluteString)
+        FURenderKit.startRecordVideo(withFilePath: videoPathURL!.absoluteString)
     }
     
     /// 结束录制视频
     final func finishRecordingVideo() {
         FURenderKit.stopRecordVideoComplention { filePath in
             DispatchQueue.main.async {
-                UISaveVideoAtPathToSavedPhotosAlbum(filePath!, self, #selector(self.savedVideo(video:didFinishSavingWithError:contextInfo:)), nil)
+                UISaveVideoAtPathToSavedPhotosAlbum(filePath, self, #selector(self.savedVideo(video:didFinishSavingWithError:contextInfo:)), nil)
             }
         }
     }
@@ -220,7 +226,7 @@ class BaseViewModel: NSObject {
         }
     }
     
-    @objc private func savedVideo(video: String,didFinishSavingWithError error: Error?, contextInfo: AnyObject) {
+    @objc private func savedVideo(video: String, didFinishSavingWithError error: Error?, contextInfo: AnyObject) {
         if error != nil {
             ProgressHUD.showError(message: NSLocalizedString("保存视频失败", comment: ""))
         } else {
@@ -230,8 +236,8 @@ class BaseViewModel: NSObject {
     
     /// 保存人脸中心点
     private func saveFaceCenterPoint() {
-        let faceEnabled = faceTrace
-        var center: CGPoint = CGPoint(x: 0.5, y: 0.5)
+        let faceEnabled = Manager.faceTrace
+        var center = CGPoint(x: 0.5, y: 0.5)
         if faceEnabled {
             if let camera = FURenderKit.share().captureCamera {
                 let faceCenter = getFaceCenter()
@@ -249,12 +255,12 @@ class BaseViewModel: NSObject {
     /// 获取人脸中心点
     private func getFaceCenter() -> CGPoint {
         // 获取人脸信息
-        let rect: UnsafeMutablePointer<Float> = UnsafeMutablePointer<Float>.allocate(capacity: 4)
+        let rect = UnsafeMutablePointer<Float>.allocate(capacity: 4)
         FUAIKit.getFaceInfo(0, name: "face_rect", pret: rect, number: 4)
-        let minX: CGFloat = CGFloat(rect[0])
-        let minY: CGFloat = CGFloat(rect[1])
-        let maxX: CGFloat = CGFloat(rect[2])
-        let maxY: CGFloat = CGFloat(rect[3])
+        let minX = CGFloat(rect[0])
+        let minY = CGFloat(rect[1])
+        let maxX = CGFloat(rect[2])
+        let maxY = CGFloat(rect[3])
         // 计算中心点的坐标
         var centerX = (minX + maxX) * 0.5
         var centerY = (minY + maxY) * 0.5
@@ -265,10 +271,9 @@ class BaseViewModel: NSObject {
     }
 }
 
-//MARK: FUCaptureCameraDataSource & FURenderKitDelegate
+// MARK: FUCaptureCameraDataSource & FURenderKitDelegate
 
 extension BaseViewModel: FUCaptureCameraDataSource, FURenderKitDelegate {
-    
     func fuCaptureFaceCenter(inImage camera: FUCaptureCamera!) -> CGPoint {
         return faceCenter
     }
@@ -277,24 +282,24 @@ extension BaseViewModel: FUCaptureCameraDataSource, FURenderKitDelegate {
         return isRendering
     }
     
-    func renderKitWillRender(from renderInput: FURenderInput!) {
+    func renderKitWillRender(from renderInput: FURenderInput) {
         inputBufferWidth = CVPixelBufferGetWidth(renderInput.pixelBuffer)
         inputBufferHeight = CVPixelBufferGetHeight(renderInput.pixelBuffer)
         
         startTime = CFAbsoluteTimeGetCurrent()
     }
     
-    func renderKitDidRender(to renderOutput: FURenderOutput!) {
+    func renderKitDidRender(to renderOutput: FURenderOutput) {
         let endTime: CFAbsoluteTime = CFAbsoluteTimeGetCurrent()
         // 加一帧占用时间
         currentCalculateTime += (endTime - startTime)
         // 加帧数
         rate += 1
-        if (endTime - lastCalculateTime >= 1) {
+        if endTime - lastCalculateTime >= 1 {
             // 一秒钟计算一次
             let width = CVPixelBufferGetWidth(renderOutput.pixelBuffer)
             let height = CVPixelBufferGetHeight(renderOutput.pixelBuffer)
-            let bugString = String(format: "resolution:\n%dx%d\nfps: %d\nrender time:\n%.0fms", width, height, rate, currentCalculateTime*1000/Double(rate));
+            let bugString = String(format: "resolution:\n%dx%d\nfps: %d\nrender time:\n%.0fms", width, height, rate, currentCalculateTime * 1000 / Double(rate))
             // bugly信息回调
             if let callBack = buglyInformationCallBack {
                 callBack(bugString)
@@ -310,7 +315,13 @@ extension BaseViewModel: FUCaptureCameraDataSource, FURenderKitDelegate {
         
         // 人脸检测回调
         if let callBack = faceTraceCallBack {
-            callBack(faceTrace)
+            if aiTraceType == .Face {
+                callBack(Manager.faceTrace)
+            } else if aiTraceType == .Hand {
+                callBack(Manager.handTrace)
+            } else if aiTraceType == .Body {
+                callBack(Manager.bodyTrace)
+            }
         }
     }
 }

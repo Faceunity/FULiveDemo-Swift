@@ -5,8 +5,6 @@
 //  Created by 项林平 on 2022/4/11.
 //
 
-import HandyJSON
-
 enum ModuleCategory: Int {
     case faceEffects = 0, bodyEffects, contentService
     var title: String {
@@ -25,7 +23,7 @@ enum ModuleType: Int {
     case beauty = 0
 }
 
-struct HomepageModel: HandyJSON {
+struct HomepageModel: Codable {
     var type: Int?
     var name: String?
     var icon: String?
@@ -33,11 +31,23 @@ struct HomepageModel: HandyJSON {
     // 模块对比代码
     var moduleCode: Int?
     var modules: [Int]?
-    var items: [Any]?
-    
-    mutating func mapping(mapper: HelpingMapper) {
-        mapper <<< type <-- "itemType"
-        mapper <<< name <-- "itemName"
-        mapper <<< moduleCode <-- "conpareCode"
+
+    enum CodingKeys: String, CodingKey {
+        case type = "itemType"
+        case name = "itemName"
+        case icon
+        case enabled
+        case moduleCode = "conpareCode"
+        case modules
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        type = try container.decodeIfPresent(Int.self, forKey: .type)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        icon = try container.decodeIfPresent(String.self, forKey: .icon)
+        enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled)
+        moduleCode = try container.decodeIfPresent(Int.self, forKey: .moduleCode)
+        modules = try container.decodeIfPresent([Int].self, forKey: .modules)
     }
 }
